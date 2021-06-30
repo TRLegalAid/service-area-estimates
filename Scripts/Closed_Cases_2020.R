@@ -52,7 +52,6 @@ SA_join_200 <- SA_join %>%
 
 # write_excel_csv(SA_join_200, "./Output/Stats_SA.csv")
 
-
 all_merged <- geo_join(TXcounties, SA_join_200, "GEOID","GEOID") %>%
   filter(GEOID %in% inSA$GEOID)
 

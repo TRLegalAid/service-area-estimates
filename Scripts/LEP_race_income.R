@@ -1,9 +1,11 @@
+#Script initially written for Nuclear DEIS project with Maggie Barnes
+
 library(dplyr)
 library(tidycensus)
 library(tidyverse)
 library(xlsx)
 
-lepVar<- c("PercLEP" = "S1602_C04_001")
+lepVar <- c("PercLEP" = "S1602_C04_001")
 raceVars <- c("TotalPop" = "B03002_001", "WhitePop" = "B03002_003")
 incVars <- c("totalPov" = "C17002_001", "Under50" = "C17002_002", "50to99" = "C17002_003", "100to124" = "C17002_004",  
           "125to150" = "C17002_005", "150to184"="C17002_006","185to199" = "C17002_007")
@@ -60,8 +62,8 @@ TX_Race2 <- TX_Race %>%
   mutate(Pct_White = 100*(WhitePopE/TotalPopE),
          Pct_White_moe = 100*(moe_prop(WhitePopE, TotalPopE, WhitePopM, TotalPopM)))
 
-Allstats <- right_join(TX_Race2, TX_Inc2, by = "GEOID")
-Allstats <- right_join(Allstats, TX_LEP, by = "GEOID") %>%
+Allstats <- right_join(TX_Race2, TX_Inc2, by = "GEOID") %>%
+  right_join(TX_LEP, by = "GEOID") %>%
   filter(str_detect(GEOID,"^48201") | str_detect(GEOID, "^48141"))
 
 AllstatsFINAL <- Allstats %>%
