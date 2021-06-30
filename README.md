@@ -10,7 +10,7 @@ You'll also need a Census API key, which you can get [here](https://api.census.g
 
 Use the Census API and the tidycensus package to pull Census data on poverty, race, race & poverty, English proficiency, and educational attainment, specifically in the TRLA service area.
 
-### Attys_Offices_Counties.R
+### Attys_Offices_Counties
 
 This script creates maps that compare TRLA attorney staffing to the poverty population in each county. It also groups the counties into regions and runs similar calculations by region. It then creates maps to display this information. This was a RD request.
 
