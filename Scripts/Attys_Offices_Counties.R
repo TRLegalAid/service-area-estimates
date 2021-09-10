@@ -8,37 +8,55 @@ library(htmltools)
 library(tidycensus)
 
 #Read in data that pairs each office with a county
-office_counties <- read_excel("../TRLA_Counties_by_Office.xlsx") %>%
+office_counties <- read_excel("./Data/TRLA_Counties_by_Office.xlsx") %>%
   mutate(Office = str_to_upper(Office))
 
 #Not sure what's up with the Sinton office, so just converting that to Corpus
 office_counties$Office[office_counties$Office=="SINTON"] <- "CORPUS CHRISTI"
 
 #Read in a list of every county in our service area that includes GEOIDs
-service_area <- read.csv("../SACount.csv") %>%
+service_area <- read.csv("./Data/SACount.csv") %>%
   rename(GEOID = 1)
 
 #List of attorneys , removing irrelevant offices
-attys_civil <- read.csv("./Data/Attorneys_6.1.csv") %>%
-  filter(!str_detect(Office, "PD") & !str_detect(Office, "NASHVILLE") & !str_detect(Office, "REMOTE")
-         & !str_detect(Office, "DALLAS"))
+# attys_civil_old <- read.csv("./Data/Attorneys_6.1.csv") %>%
+#   filter(!str_detect(Office, "PD") & !str_detect(Office, "NASHVILLE") & !str_detect(Office, "REMOTE")
+#          & !str_detect(Office, "DALLAS"))
+
+
+#Updating the above cleaning steps for September staff list:
+attys_civil <- read.csv("./Data/2021_09_atty_list.csv") %>% filter(!str_detect(Office, "REMOTE") & !str_detect(Office, "NASHVILLE")
+                                                                   & !str_detect(Office, "DALLAS") & !str_detect(Office, "TAJ"))
+
 
 #Additional text changes so that atty list matches county list
-attys_civil$Office[attys_civil$Office == "CORPUS COURTHOUSE"] <- "CORPUS CHRISTI"
-attys_civil$Office[attys_civil$Office == "CORPUS PUEBLO"] <- "CORPUS CHRISTI"
+attys_civil$Office[attys_civil$Office == "CORPUS COURTHOUSE" | attys_civil$Office == "CORPUS PUEBLO"] <- "CORPUS CHRISTI"
 attys_civil$Office[attys_civil$Office == "MERCEDES" | attys_civil$Office == "HARLINGEN"] <- "BROWNSVILLE"
+attys_civil$Office[attys_civil$Office == "EL PASO/ NY"] <- "EL PASO"   
+attys_civil$Office[attys_civil$Office == "VICTORIA LAW CTR (CY"] <- "VICTORIA" 
+attys_civil$Office[attys_civil$Office == "DILLEY"] <- "EAGLE PASS" ## Frio County is in Eagle Pass service area
+
+# Register for your unique API key here: https://api.census.gov/data/key_signup.html
+# Save your key somewhere outside of this project directory, so it won't end up accidentally tracked by Git
+
+key <- read.delim("../credentials/census_api_key.txt", header = FALSE)
+
+# Add your Census API key to your environment
+census_api_key(key)
+
 
 #read in Census data
 poverty_data <- get_acs(geography = "county",
                      table = "C17002",
                      survey = "acs5",
-                     year = 2018,
+                     year = 2019,
+                     key = census_api_key,
                      state = "TX",
                      output = "tidy",
                      geometry = FALSE
 )
 
-poverty_data <- subset(poverty_data, GEOID %in% Counties$GEOID)
+poverty_data <- subset(poverty_data, GEOID %in% service_area$GEOID)
 
 
 poverty_data <- poverty_data %>%
@@ -107,6 +125,11 @@ content2 <- paste("<p><strong>", TRLA_counties$NAME, "</strong></p>",
                  "<strong>","Under 200%:", "</strong>", TRLA_counties$Under200, "±", round(TRLA_counties$Under200MOE,2), "<br>",
                  "<strong>","Eligible clients per attorney:", "</strong>", TRLA_counties$ppl_per_atty_cty) %>%
   lapply(htmltools::HTML)
+
+
+
+#The .html outputs for these two leaflet maps were produced by 
+# selecting Export > Save as web page from the Viewer
 
 
 #REGIONS/OFFICES
