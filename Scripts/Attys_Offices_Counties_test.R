@@ -1,3 +1,5 @@
+## Modified version of Attys_Offices_Counties.R that excludes law grads
+
 library(readr)
 library(readxl)
 library(tidyverse)
@@ -34,7 +36,11 @@ attys_civil$Office[attys_civil$Office == "CORPUS COURTHOUSE" | attys_civil$Offic
 attys_civil$Office[attys_civil$Office == "MERCEDES" | attys_civil$Office == "HARLINGEN"] <- "BROWNSVILLE"
 attys_civil$Office[attys_civil$Office == "EL PASO/ NY"] <- "EL PASO"   
 attys_civil$Office[attys_civil$Office == "VICTORIA LAW CTR (CY"] <- "VICTORIA" 
-attys_civil$Office[attys_civil$Office == "DILLEY"] <- "San Antonio"
+attys_civil$Office[attys_civil$Office == "DILLEY"] <- "San Antonio" 
+
+# Excluding law grads from the calculations
+attys_civil_nlg <- attys_civil %>% filter()
+
 
 # Register for your unique API key here: https://api.census.gov/data/key_signup.html
 # Save your key somewhere outside of this project directory, so it won't end up accidentally tracked by Git
@@ -47,13 +53,13 @@ census_api_key(key)
 
 #read in Census data
 poverty_data <- get_acs(geography = "county",
-                     table = "C17002",
-                     survey = "acs5",
-                     year = 2019,
-                     key = census_api_key,
-                     state = "TX",
-                     output = "tidy",
-                     geometry = FALSE
+                        table = "C17002",
+                        survey = "acs5",
+                        year = 2019,
+                        key = census_api_key,
+                        state = "TX",
+                        output = "tidy",
+                        geometry = FALSE
 )
 
 poverty_data <- subset(poverty_data, GEOID %in% service_area$GEOID)
@@ -116,14 +122,14 @@ pal2 <- colorBin("YlOrRd", domain = TRLA_counties$ppl_per_atty_cty, bins = bins)
 content <- paste("<p><strong>", TRLA_regions$Office, "</strong></p>",
                  "<strong>","Under 200%:", "</strong>", TRLA_regions$Poverty_pop_region, "<br>",
                  "<strong>","TRLA Attorneys:", "</strong>", TRLA_regions$attys, "<br>",
-                "<strong>","Eligible clients per attorney:", "</strong>", TRLA_regions$ppl_per_atty_region) %>%
+                 "<strong>","Eligible clients per attorney:", "</strong>", TRLA_regions$ppl_per_atty_region) %>%
   lapply(htmltools::HTML)
 
 content2 <- paste("<p><strong>", TRLA_counties$NAME, "</strong></p>",
                   "<strong>","Served by:", "</strong>", TRLA_counties$Office, "<br>",
                   "<strong>","TRLA Attorneys:", "</strong>", TRLA_counties$attys, "<br>",
-                 "<strong>","Under 200%:", "</strong>", TRLA_counties$Under200, "±", round(TRLA_counties$Under200MOE,2), "<br>",
-                 "<strong>","Eligible clients per attorney:", "</strong>", TRLA_counties$ppl_per_atty_cty) %>%
+                  "<strong>","Under 200%:", "</strong>", TRLA_counties$Under200, "±", round(TRLA_counties$Under200MOE,2), "<br>",
+                  "<strong>","Eligible clients per attorney:", "</strong>", TRLA_counties$ppl_per_atty_cty) %>%
   lapply(htmltools::HTML)
 
 
