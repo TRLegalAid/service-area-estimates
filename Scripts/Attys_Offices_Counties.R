@@ -19,13 +19,13 @@ service_area <- read.csv("./Data/SACount.csv") %>%
   rename(GEOID = 1)
 
 #List of attorneys , removing irrelevant offices
-# attys_civil_old <- read.csv("./Data/Attorneys_6.1.csv") %>%
+# attys_civil_old <- read.csv("./Data/staff_lists/Attorneys_6.1.csv") %>%
 #   filter(!str_detect(Office, "PD") & !str_detect(Office, "NASHVILLE") & !str_detect(Office, "REMOTE")
 #          & !str_detect(Office, "DALLAS"))
 
 
 #Updating the above cleaning steps for September staff list:
-attys_civil <- read.csv("./Data/2021_09_atty_list.csv") %>% filter(!str_detect(Office, "REMOTE") & !str_detect(Office, "NASHVILLE")
+attys_civil <- read.csv("./Data/staff_lists/2021_09_atty_list.csv") %>% filter(!str_detect(Office, "REMOTE") & !str_detect(Office, "NASHVILLE")
                                                                    & !str_detect(Office, "DALLAS") & !str_detect(Office, "TAJ"))
 
 

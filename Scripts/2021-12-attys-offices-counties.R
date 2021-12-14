@@ -125,8 +125,8 @@ region_map_nlg <- maps_nlg[[2]]
 
 
 # December 2021
-saveWidget(county_map, file="./Output/2021_12_by_county.html")
-saveWidget(region_map, file="./Output/2021_12_by_region.html")
+saveWidget(county_map, file="./Output/maps/2021_12_by_county.html")
+saveWidget(region_map, file="./Output/maps/2021_12_by_region.html")
 
-saveWidget(county_map_nlg, file="./Output/2021_12_by_county_no_law_grads.html")
-saveWidget(region_map_nlg, file="./Output/2021_12_by_region_no_law_grads.html")
+saveWidget(county_map_nlg, file="./Output/maps/2021_12_by_county_no_law_grads.html")
+saveWidget(region_map_nlg, file="./Output/maps/2021_12_by_region_no_law_grads.html")
