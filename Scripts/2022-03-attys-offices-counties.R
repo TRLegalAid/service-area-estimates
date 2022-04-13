@@ -1,4 +1,5 @@
 ## Adapting Attys_Offices_Counties.R to produce maps with and without law graduates. 
+## MARCH 2022 ATTY List 
 
 library(readr)
 library(readxl)
@@ -27,7 +28,10 @@ trla_counties <- read.csv("./Data/SACount.csv") %>% clean_names()
 
 
 # Load latest civil attorney staff list
-attys_list_raw <- read.csv("./Data/staff_lists/Attorneys 02 2022.csv") %>% clean_names() %>% rename(office = office_location)
+attys_list_raw <- read.csv("./Data/staff_lists/March 2022 Attorneys List 1.csv") %>% 
+  clean_names() %>% 
+  rename(office = ofc, job_title = job, employee_name = empnam) %>%
+  select(employee_name, office, job_title)
 
 # Perform any cleaning needed for this month's atty list
 attys_list <- attys_list_raw %>% 
@@ -38,9 +42,7 @@ attys_list <- attys_list_raw %>%
       (office == "CORPUS COURTHOUSE" | office == "CORPUS PUEBLO") ~ "CORPUS CHRISTI",
       (office == "MERCEDES" | office == "HARLINGEN") ~ "BROWNSVILLE",
       office == "EL PASO/ NY" ~ "EL PASO",
-      office == "VICTORIA LAW CTR (CY" ~ "VICTORIA",
       office == "DILLEY" ~ "SAN ANTONIO",
-      employee_name == "ZABOROSKI, JESSICA" ~ "AUSTIN",
       employee_name == "GILBERT, ALEXANDER H." ~ "AUSTIN",
       TRUE ~ office)
   ) %>%
@@ -70,12 +72,24 @@ census_api_key(key)
 poverty_data_raw <- get_acs(geography = "county",
                             table = "C17002",
                             survey = "acs5",
-                            year = 2019,
+                            year = 2020,
                             key = census_api_key,
                             state = "TX",
                             output = "tidy",
                             geometry = FALSE
 )
+
+
+# # Load ACS data 2019
+# poverty_data_raw_19 <- get_acs(geography = "county",
+#                             table = "C17002",
+#                             survey = "acs5",
+#                             year = 2019,
+#                             key = census_api_key,
+#                             state = "TX",
+#                             output = "tidy",
+#                             geometry = FALSE
+# )
 
 
 poverty_data <- subset(poverty_data_raw, GEOID %in% trla_counties$i_geoid)
@@ -123,9 +137,9 @@ county_map_nlg <- maps_nlg[[1]]
 region_map_nlg <- maps_nlg[[2]]
 
 
-# Feb 2022
-saveWidget(county_map, file="./Output/maps/2022_02_by_county.html")
-saveWidget(region_map, file="./Output/maps/2022_02_by_region.html")
+# March 2022
+saveWidget(county_map, file="./Output/maps/2022_03_by_county.html")
+saveWidget(region_map, file="./Output/maps/2022_03_by_region.html")
 
-saveWidget(county_map_nlg, file="./Output/maps/2022_02_by_county_no_law_grads.html")
-saveWidget(region_map_nlg, file="./Output/maps/2022_02_by_region_no_law_grads.html")
+saveWidget(county_map_nlg, file="./Output/maps/2022_03_by_county_no_law_grads.html")
+saveWidget(region_map_nlg, file="./Output/maps/2022_03_by_region_no_law_grads.html")

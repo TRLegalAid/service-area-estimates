@@ -33,7 +33,7 @@ get_estimates <- function(poverty_data, attys, trla_counties) {
   
   # Create spatial layer of COUNTY polygons with attorney and poverty data
   county_estimates <- counties(state = "TX", cb = FALSE) %>%
-    subset(GEOID %in% trla_counties$geoid) %>%
+    subset(GEOID %in% trla_counties$i_geoid) %>%
     geo_join(attys_county, by_df = "county", by_sp = "NAME") %>%
     mutate(pop_per_atty_county = round(Under200/attys,2))
   

@@ -1,4 +1,5 @@
 ## Adapting Attys_Offices_Counties.R to produce maps with and without law graduates. 
+## APRIL 2022 ATTY List 
 
 library(readr)
 library(readxl)
@@ -26,25 +27,89 @@ office_county_matches$office[office_county_matches$office=="SINTON"] <- "CORPUS 
 trla_counties <- read.csv("./Data/SACount.csv") %>% clean_names()
 
 
-# Load latest civil attorney staff list
-attys_list_raw <- read.csv("./Data/staff_lists/Attorneys 02 2022.csv") %>% clean_names() %>% rename(office = office_location)
 
-# Perform any cleaning needed for this month's atty list
-attys_list <- attys_list_raw %>% 
+### LOAD AND CLEAN ATTY LIST WITH PRACTICE AREAS
+
+# Load latest civil attorney staff list
+attys_list_raw <- read.csv("./Data/staff_lists/April 2022 Attorneys.csv") %>% 
+  clean_names() %>% 
+  rename(office = ofc, job_title = job, employee_name = empnam) %>%
+  select(-c("i_empnum", "email"))
+
+# Some specific one-off edits
+attys_list_raw[attys_list_raw$employee_name=="GEORGE, JOSEPH A.", "practice_area"] <- "Consumer Protection"
+attys_list_raw[attys_list_raw$employee_name=="GEORGE, JOSEPH A.", "practice_area_2"] <- "Torts & Civil Litigation"
+
+attys_list_raw[attys_list_raw$employee_name=="SMITH, PATRICK A.", "practice_area"] <- "Landlord-Tenant"
+attys_list_raw[attys_list_raw$employee_name=="SMITH, PATRICK A.", "practice_area_2"] <- "Consumer Protection"
+
+
+
+# Pivot longer on the practice areas
+attys_long <- attys_list_raw %>% pivot_longer(
+  starts_with("practice_area"),
+  names_to = c(".value", "set"),
+  names_pattern = "(.)(.)"
+) %>%
+  select(-c("set")) %>% 
+  filter(p != "" & !str_detect(p, "Intake") & !str_detect(p, "Public Defender") & !str_detect(p, "N/A"))
+
+attys_long$p <- attys_long$p %>% trimws()
+
+
+attys_long <- attys_long %>%
+  # Clean up practice area names
+  mutate(
+    p = case_when(
+      p == "MHPP" ~ "Mental Health Programs Project",
+      (p == "Dilley Project" | p == "Dilley Detention Project") ~ "Dilley Detention Center",
+      p == "Housing - Landlord-Tenant" ~ "Landlord-Tenant",
+      p == "Native American" ~ "Native Americans",
+      p == "Housing-Home Foreclosure Prevention" ~ "Foreclosure Prevention (Home)",
+      (p == "Federally Subsized Housing" | p == "Housing-Federally Subsidized") ~ "Federally Subsidized Housing",
+      (p == "Domestic Violance & Family Law Group" | p == "Domestic Violence/Family Law") ~ "Domestic Violence & Family Law Group",
+      p == "Public Benefits" ~ "Public Benefits Group",
+      p == "Farmworker" ~ "Farm Worker",
+      TRUE ~ p
+    )
+  )
+
+attys_long <- attys_long %>%
   
   # Clean up office names
   mutate(
     office = case_when(
       (office == "CORPUS COURTHOUSE" | office == "CORPUS PUEBLO") ~ "CORPUS CHRISTI",
-      (office == "MERCEDES" | office == "HARLINGEN") ~ "BROWNSVILLE",
+      (office == "HARLINGEN" | office == "MERCEDES LEGAL") ~ "BROWNSVILLE",
       office == "EL PASO/ NY" ~ "EL PASO",
-      office == "VICTORIA LAW CTR (CY" ~ "VICTORIA",
+      office == "DEL RIO PD" ~ "DEL RIO",
       office == "DILLEY" ~ "SAN ANTONIO",
-      employee_name == "ZABOROSKI, JESSICA" ~ "AUSTIN",
       employee_name == "GILBERT, ALEXANDER H." ~ "AUSTIN",
       TRUE ~ office)
-  ) %>%
-  
+  )
+
+
+## EXPLORATORY ANALYSIS
+
+# How many attys in each practice area?
+View(attys_long %>% count(p))
+
+
+# How many attys with > 1 practice area?
+
+View(attys_long %>% count(employee_name) %>% count(n))
+
+
+
+
+
+
+
+## ATTY:CLIENT RATIO MAPS
+
+# Perform any cleaning needed for this month's atty list
+attys_long_local <- attys_long %>% 
+
   # Filter out offices outside of the 68 county service area
   filter(
     !str_detect(office, "REMOTE") &  !str_detect(office, "NASHVILLE") & 
@@ -53,7 +118,12 @@ attys_list <- attys_list_raw %>%
 
 
 # Subset to just the civil attorneys who handle cases (exclude law grads) 
-attys_list_nlg <- attys_list %>% filter(job_title != "LAW GRADUATE")
+attys_list_nlg <- attys_long %>% filter(job_title != "LAW GRADUATE")
+
+
+
+
+
 
 
 ## ----------- Load ACS data
@@ -70,7 +140,7 @@ census_api_key(key)
 poverty_data_raw <- get_acs(geography = "county",
                             table = "C17002",
                             survey = "acs5",
-                            year = 2019,
+                            year = 2020,
                             key = census_api_key,
                             state = "TX",
                             output = "tidy",
@@ -123,9 +193,9 @@ county_map_nlg <- maps_nlg[[1]]
 region_map_nlg <- maps_nlg[[2]]
 
 
-# Feb 2022
-saveWidget(county_map, file="./Output/maps/2022_02_by_county.html")
-saveWidget(region_map, file="./Output/maps/2022_02_by_region.html")
+# April 2022
+saveWidget(county_map, file="./Output/maps/2022_04_by_county.html")
+saveWidget(region_map, file="./Output/maps/2022_04_by_region.html")
 
-saveWidget(county_map_nlg, file="./Output/maps/2022_02_by_county_no_law_grads.html")
-saveWidget(region_map_nlg, file="./Output/maps/2022_02_by_region_no_law_grads.html")
+saveWidget(county_map_nlg, file="./Output/maps/2022_04_by_county_no_law_grads.html")
+saveWidget(region_map_nlg, file="./Output/maps/2022_04_by_region_no_law_grads.html")
